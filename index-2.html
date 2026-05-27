@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#09090A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RITO">
+<meta name="description" content="Diagnóstico capilar de alto padrão. Protocolo personalizado. Entrega concierge.">
+<title>RITO — Jornada Capilar</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --ink:        #09090A;
+  --ink-2:      #111113;
+  --ink-3:      #18181B;
+  --ink-4:      #222226;
+  --gold:       #C9922A;
+  --gold-hi:    #E8BC6A;
+  --gold-soft:  rgba(201,146,42,.12);
+  --gold-line:  rgba(201,146,42,.22);
+  --cream:      #F4EED8;
+  --cream-2:    #EDE6CC;
+  --text:       #D8D0B8;
+  --muted:      #7A7460;
+  --muted-2:    #4E4A3A;
+  --serif:      'Playfair Display', Georgia, serif;
+  --sans:       'Jost', sans-serif;
+  --ease:       cubic-bezier(.22,.1,.36,1);
+  --ease-out:   cubic-bezier(0,0,.2,1);
+  --spring:     cubic-bezier(.34,1.56,.64,1);
+  --safe-top:   env(safe-area-inset-top, 0px);
+  --safe-bot:   env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── RESET ───────────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { height:100%; overscroll-behavior:none; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.6;
+  min-height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+button { font-family: var(--sans); cursor: pointer; border: none; background: none; }
+button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+
+/* ─── APP SHELL ───────────────────────────────────────── */
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ─── GRAIN OVERLAY ───────────────────────────────────── */
+#grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  animation: grain 8s steps(10) infinite;
+}
+@keyframes grain {
+  0%,100%{transform:translate(0,0)}
+  10%{transform:translate(-2%,-3%)}
+  20%{transform:translate(3%,2%)}
+  30%{transform:translate(-1%,4%)}
+  40%{transform:translate(4%,-1%)}
+  50%{transform:translate(-3%,1%)}
+  60%{transform:translate(2%,-4%)}
+  70%{transform:translate(-4%,3%)}
+  80%{transform:translate(1%,-2%)}
+  90%{transform:translate(-2%,2%)}
+}
+
+/* ─── SCREENS ─────────────────────────────────────────── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  will-change: transform, opacity;
+  transition: transform .55s var(--ease), opacity .55s var(--ease);
+}
+.screen.hidden-right  { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+.screen.hidden-left   { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+.screen.hidden-down   { transform: translateY(60px);  opacity: 0; pointer-events: none; }
+.screen.visible       { transform: translateX(0) translateY(0); opacity: 1; pointer-events: all; }
+
+/* ─── SCROLLABLE AREA ─────────────────────────────────── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 1 — HOME
+══════════════════════════════════════════════════════════ */
+#s-home {
+  background: var(--ink);
+  justify-content: space-between;
+}
+
+/* Atmospheric background */
+.home-atmo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.home-atmo::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  right: -200px; top: -200px;
+  background: radial-gradient(circle, rgba(201,146,42,.09) 0%, transparent 65%);
+  animation: breathe 8s ease-in-out infinite;
+}
+.home-atmo::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  left: -150px; bottom: 100px;
+  background: radial-gradient(circle, rgba(201,146,42,.05) 0%, transparent 65%);
+  animation: breathe 10s ease-in-out infinite reverse;
+}
+@keyframes breathe {
+  0%,100% { transform: scale(1); opacity: .7; }
+  50%      { transform: scale(1.15); opacity: 1; }
+}
+
+/* Vertical rule */
+.home-rule {
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: .5px;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    var(--gold-line) 25%,
+    var(--gold-line) 75%,
+    transparent 100%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.home-top {
+  position: relative;
+  z-index: 2;
+  padding: calc(var(--safe-top) + 22px) 26px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.wordmark-name {
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 400;
+  letter-spacing: .28em;
+  color: #F0E9D5;
+  text-transform: uppercase;
+}
+.wordmark-tag {
+  font-size: 8.5px;
+  font-weight: 300;
+  letter-spacing: .22em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.home-top-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.home-top-year {
+  font-size: 10px;
+  letter-spacing: .16em;
+  color: var(--muted-2);
+}
+.home-top-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse-dot 3s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity: .4; transform: scale(1); }
+  50%      { opacity: 1;  transform: scale(1.3); }
+}
+
+.home-hero {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 26px;
+}
+.home-kicker {
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 22px;
+  opacity: 0;
+  animation: rise .8s var(--ease) .4s forwards;
+}
+.home-h1 {
+  font-family: var(--serif);
+  font-size: clamp(48px, 14vw, 72px);
+  font-weight: 400;
+  line-height: 1.0;
+  color: #F0E9D5;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: rise .9s var(--ease) .55s forwards;
+}
+.home-h1 em {
+  font-style: italic;
+  color: var(--gold-hi);
+}
+.home-sub {
+  font-size: 13px;
+  font-weight: 200;
+  color: var(--muted);
+  line-height: 1.9;
+  max-width: 240px;
+  margin-bottom: 38px;
+  opacity: 0;
+  animation: rise .9s var(--ease) .7s forwards;
+}
+.cta-wrap {
+  opacity: 0;
+  animation: rise .9s var(--ease) .85s forwards;
+}
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 15px 26px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: background .3s var(--ease), transform .3s var(--ease), box-shadow .3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.btn-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.18), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.btn-cta:active { transform: scale(.97); }
+.btn-cta:hover { background: var(--gold-hi); box-shadow: 0 8px 32px rgba(201,146,42,.35); }
+.btn-cta:hover::before { opacity: 1; }
+.cta-arrow {
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .3s var(--ease);
+}
+.btn-cta:hover .cta-arrow { transform: translateX(4px); }
+
+.home-bot {
+  position: relative;
+  z-index: 2;
+  padding: 18px 26px calc(var(--safe-bot) + 26px);
+  border-top: .5px solid rgba(201,146,42,.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.home-stat {
+  text-align: center;
+  flex: 1;
+}
+.stat-n {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--gold-hi);
+  display: block;
+  line-height: 1;
+}
+.stat-l {
+  font-size: 8px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-top: 4px;
+}
+.stat-sep {
+  width: .5px;
+  height: 30px;
+  background: var(--gold-line);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 2 — DIAGNÓSTICO
+══════════════════════════════════════════════════════════ */
+#s-diag {
+  background: var(--ink);
+}
+
+.diag-topbar {
+  padding: calc(var(--safe-top) + 18px) 22px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: .5px solid rgba(201,146,42,.08);
+  flex-shrink: 0;
+}
+.btn-back {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: .5px solid rgba(201,146,42,.2);
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: border-color .2s, color .2s;
+}
+.btn-back:hover { border-color: var(--gold); color: var(--cream); }
+
+.progress-track {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.progress-bar {
+  height: 1px;
+  background: rgba(201,146,42,.15);
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-hi) 100%);
+  transition: width .6s var(--ease);
+  box-shadow: 0 0 8px rgba(201,146,42,.5);
+}
+.progress-label {
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+}
+
+.diag-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 22px 20px;
+  overflow: hidden;
+}
+.q-step {
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.q-text {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: #EDE6D0;
+  margin-bottom: 8px;
+}
+.q-hint {
+  font-size: 12px;
+  font-weight: 200;
+  color: var(--muted);
+  margin-bottom: 26px;
+}
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+.q-options::-webkit-scrollbar { display: none; }
+
+.q-opt {
+  background: var(--ink-3);
+  border: .5px solid rgba(201,146,42,.14);
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: background .2s, border-color .25s, transform .2s var(--spring);
+  position: relative;
+  overflow: hidden;
+}
+.q-opt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--gold-soft), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.q-opt:active { transform: scale(.985); }
+.q-opt.sel {
+  border-color: var(--gold);
+  background: rgba(201,146,42,.07);
+}
+.q-opt.sel::before { opacity: 1; }
+.q-opt.sel .opt-radio { background: var(--gold); border-color: var(--gold); }
+.q-opt.sel .opt-radio::after { opacity: 1; transform: scale(1); }
+
+.opt-icon {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  filter: grayscale(.4);
+  transition: filter .2s;
+}
+.q-opt.sel .opt-icon { filter: none; }
+.opt-label {
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.4;
+  position: relative;
+}
+.opt-radio {
+  width: 17px; height: 17px;
+  border: .5px solid rgba(201,146,42,.3);
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  transition: background .2s, border-color .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.opt-radio::after {
+  content: '';
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .2s, transform .2s var(--spring);
+}
+
+.diag-bot {
+  flex-shrink: 0;
+  padding: 14px 22px calc(var(--safe-bot) + 18px);
+  border-top: .5px solid rgba(201,146,42,.08);
+}
+.btn-next {
+  width: 100%;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 15px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: background .3s, opacity .3s, box-shadow .3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-next::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.btn-next:not(:disabled):hover { background: var(--gold-hi); box-shadow: 0 6px 24px rgba(201,146,42,.3); }
+.btn-next:not(:disabled):hover::after { opacity: 1; }
+.btn-next:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 3 — RESULTADO / PROTOCOLO
+══════════════════════════════════════════════════════════ */
+#s-protocol {
+  background: var(--ink);
+}
+
+.proto-topbar {
+  padding: calc(var(--safe-top) + 18px) 22px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border-bottom: .5px solid rgba(201,146,42,.08);
+}
+.proto-topbar-logo {
+  font-family: var(--serif);
+  font-size: 16px;
+  letter-spacing: .24em;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+.proto-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.proto-scroll::-webkit-scrollbar { display: none; }
+.proto-inner {
+  padding: 28px 22px 20px;
+}
+
+.proto-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: .5px solid var(--gold-line);
+  padding: 5px 13px;
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 22px;
+}
+.proto-tag-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.proto-name {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.05;
+  color: #EDE6D0;
+  margin-bottom: 16px;
+}
+.proto-name em { font-style: italic; color: var(--gold-hi); }
+
+.proto-desc {
+  font-size: 13px;
+  font-weight: 200;
+  color: var(--muted);
+  line-height: 1.9;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: .5px solid rgba(201,146,42,.1);
+}
+
+/* Phase steps */
+.phases-label {
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 14px;
+}
+.phases {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 28px;
+}
+.phase {
+  background: var(--ink-3);
+  border-left: 2px solid transparent;
+  padding: 14px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color .2s, background .2s;
+}
+.phase:hover { border-left-color: var(--gold); background: var(--ink-4); }
+.phase-num {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--gold);
+  line-height: 1;
+  min-width: 20px;
+  margin-top: 1px;
+}
+.phase-txt {}
+.phase-ttl {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--cream);
+  margin-bottom: 3px;
+}
+.phase-dsc {
+  font-size: 11.5px;
+  font-weight: 200;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Products */
+.products-label {
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 14px;
+  padding-top: 28px;
+  border-top: .5px solid rgba(201,146,42,.1);
+}
+.product-row {
+  background: var(--ink-3);
+  border: .5px solid rgba(201,146,42,.12);
+  padding: 14px 15px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: default;
+}
+.product-row:hover {
+  border-color: rgba(201,146,42,.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+}
+.prod-icon {
+  width: 50px; height: 50px;
+  background: var(--ink-4);
+  border: .5px solid rgba(201,146,42,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.prod-info { flex: 1; min-width: 0; }
+.prod-name {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--cream);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.prod-role {
+  font-size: 11px;
+  font-weight: 200;
+  color: var(--muted);
+}
+.prod-price {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--gold-hi);
+  flex-shrink: 0;
+}
+
+.proto-bot {
+  flex-shrink: 0;
+  padding: 14px 22px calc(var(--safe-bot) + 18px);
+  border-top: .5px solid rgba(201,146,42,.08);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.btn-solid {
+  width: 100%;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 15px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: background .3s, box-shadow .3s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-solid:hover { background: var(--gold-hi); box-shadow: 0 6px 24px rgba(201,146,42,.3); }
+.btn-outline {
+  width: 100%;
+  background: transparent;
+  color: var(--muted);
+  border: .5px solid rgba(201,146,42,.2);
+  padding: 13px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  transition: border-color .2s, color .2s;
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--cream); }
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 4 — CARRINHO
+══════════════════════════════════════════════════════════ */
+#s-cart {
+  background: var(--ink);
+}
+
+.cart-topbar {
+  padding: calc(var(--safe-top) + 18px) 22px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: .5px solid rgba(201,146,42,.08);
+  flex-shrink: 0;
+}
+.cart-title-wrap { flex: 1; }
+.cart-heading {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--cream);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.cart-sub {
+  font-size: 10px;
+  font-weight: 200;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+.cart-badge {
+  width: 26px; height: 26px;
+  background: var(--gold);
+  color: var(--ink);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cart-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 22px 8px;
+}
+.cart-scroll::-webkit-scrollbar { display: none; }
+
+.cart-item {
+  background: var(--ink-3);
+  border: .5px solid rgba(201,146,42,.12);
+  padding: 14px 15px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+  transition: border-color .2s;
+}
+.cart-item:hover { border-color: rgba(201,146,42,.3); }
+.ci-icon {
+  width: 44px; height: 44px;
+  background: var(--ink-4);
+  border: .5px solid rgba(201,146,42,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.ci-info { flex: 1; min-width: 0; }
+.ci-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--cream);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ci-detail {
+  font-size: 11px;
+  font-weight: 200;
+  color: var(--muted);
+}
+.ci-price {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--gold-hi);
+  flex-shrink: 0;
+}
+
+.cart-summary {
+  margin: 8px 22px 0;
+  background: var(--ink-2);
+  border: .5px solid rgba(201,146,42,.1);
+  padding: 16px 18px;
+}
+.cs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+.cs-row + .cs-row { border-top: .5px solid rgba(201,146,42,.07); }
+.cs-label {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cs-val {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text);
+}
+.cs-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: .5px solid rgba(201,146,42,.2);
+}
+.cs-total-label {
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cs-total-val {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 400;
+  color: #EDE6D0;
+}
+
+.cart-bot {
+  flex-shrink: 0;
+  padding: 14px 22px calc(var(--safe-bot) + 18px);
+  border-top: .5px solid rgba(201,146,42,.08);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCREEN 5 — CONFIRMAÇÃO
+══════════════════════════════════════════════════════════ */
+#s-confirm {
+  background: var(--ink);
+  align-items: center;
+  justify-content: center;
+  padding: 40px 26px calc(var(--safe-bot) + 40px);
+  text-align: center;
+}
+#s-confirm.visible .confirm-seal { animation: seal-in .7s var(--spring) .1s both; }
+#s-confirm.visible .confirm-kicker { animation: rise .6s var(--ease) .45s both; }
+#s-confirm.visible .confirm-h2 { animation: rise .7s var(--ease) .55s both; }
+#s-confirm.visible .confirm-p { animation: rise .6s var(--ease) .65s both; }
+#s-confirm.visible .confirm-card { animation: rise .6s var(--ease) .72s both; }
+#s-confirm.visible .confirm-btn-wrap { animation: rise .6s var(--ease) .8s both; }
+
+@keyframes seal-in {
+  from { opacity: 0; transform: scale(.5) rotate(-12deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.confirm-seal {
+  width: 76px; height: 76px;
+  border: .5px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+  position: relative;
+  opacity: 0;
+}
+.confirm-seal::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: .5px solid rgba(201,146,42,.3);
+  border-radius: 50%;
+}
+.confirm-seal-icon {
+  font-size: 28px;
+  color: var(--gold-hi);
+}
+
+.confirm-kicker {
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  opacity: 0;
+}
+.confirm-h2 {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: #EDE6D0;
+  margin-bottom: 14px;
+  opacity: 0;
+}
+.confirm-h2 em { font-style: italic; color: var(--gold-hi); }
+.confirm-p {
+  font-size: 13px;
+  font-weight: 200;
+  color: var(--muted);
+  line-height: 1.9;
+  max-width: 270px;
+  margin: 0 auto 30px;
+  opacity: 0;
+}
+.confirm-card {
+  background: var(--ink-2);
+  border: .5px solid rgba(201,146,42,.14);
+  padding: 18px 20px;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 28px;
+  text-align: left;
+  opacity: 0;
+}
+.cc-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: .5px solid rgba(201,146,42,.07);
+  font-size: 12px;
+}
+.cc-row:last-child { border-bottom: none; }
+.cc-lbl { color: var(--muted); font-weight: 200; }
+.cc-val { color: var(--cream); font-weight: 300; }
+.confirm-btn-wrap { opacity: 0; }
+
+/* ─── ANIMATIONS ──────────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── TRANSITION ANIMATION ───────────────────────────── */
+.q-slide-enter {
+  animation: slideEnter .38s var(--ease) both;
+}
+@keyframes slideEnter {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.q-slide-exit {
+  animation: slideExit .25s var(--ease) both;
+}
+@keyframes slideExit {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-30px); }
+}
+
+/* ─── UTILITY ─────────────────────────────────────────── */
+.spacer { flex: 1; }
+.gold { color: var(--gold); }
+
+</style>
+</head>
+<body>
+<div id="grain"></div>
+<div id="app">
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 1 — HOME
+══════════════════════════════════════════════ -->
+<div id="s-home" class="screen visible">
+  <div class="home-atmo"></div>
+  <div class="home-rule"></div>
+
+  <div class="home-top">
+    <div class="wordmark">
+      <div class="wordmark-name">Rito</div>
+      <div class="wordmark-tag">Jornada Capilar</div>
+    </div>
+    <div class="home-top-right">
+      <div class="home-top-year">MMXXVI</div>
+      <div class="home-top-dot"></div>
+    </div>
+  </div>
+
+  <div class="home-hero">
+    <p class="home-kicker">Diagnóstico &amp; Protocolo</p>
+    <h1 class="home-h1">
+      O cabelo<br>
+      que você<br>
+      <em>merece.</em>
+    </h1>
+    <p class="home-sub">
+      Análise personalizada.<br>
+      Mix de produtos sob medida.<br>
+      Entrega concierge em São Paulo.
+    </p>
+    <div class="cta-wrap">
+      <button class="btn-cta" id="btn-start">
+        Iniciar diagnóstico
+        <span class="cta-arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="home-bot">
+    <div class="home-stat">
+      <span class="stat-n">3'</span>
+      <span class="stat-l">Diagnóstico</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="home-stat">
+      <span class="stat-n">6</span>
+      <span class="stat-l">Protocolos</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="home-stat">
+      <span class="stat-n">AAA</span>
+      <span class="stat-l">Padrão</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 2 — DIAGNÓSTICO
+══════════════════════════════════════════════ -->
+<div id="s-diag" class="screen hidden-right">
+
+  <div class="diag-topbar">
+    <button class="btn-back" id="diag-back" aria-label="Voltar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M10 7H2M5 3L1 7l4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="progress-track">
+      <div class="progress-bar">
+        <div class="progress-fill" id="prog-fill"></div>
+      </div>
+      <div class="progress-label" id="prog-label"></div>
+    </div>
+  </div>
+
+  <div class="diag-content" id="diag-content">
+    <!-- rendered by JS -->
+  </div>
+
+  <div class="diag-bot">
+    <button class="btn-next" id="btn-next" disabled>Continuar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 3 — PROTOCOLO
+══════════════════════════════════════════════ -->
+<div id="s-protocol" class="screen hidden-right">
+  <div class="proto-topbar">
+    <button class="btn-back" id="proto-back" aria-label="Voltar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M10 7H2M5 3L1 7l4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="proto-topbar-logo">Rito</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="proto-scroll">
+    <div class="proto-inner" id="proto-inner">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+  <div class="proto-bot">
+    <button class="btn-solid" id="btn-add-cart">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1 1h2l1.5 7h6L12 4H4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="6" cy="12" r="1" fill="currentColor"/>
+        <circle cx="11" cy="12" r="1" fill="currentColor"/>
+      </svg>
+      Adicionar kit ao carrinho
+    </button>
+    <button class="btn-outline" id="btn-redo-diag">Refazer diagnóstico</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 4 — CARRINHO
+══════════════════════════════════════════════ -->
+<div id="s-cart" class="screen hidden-right">
+  <div class="cart-topbar">
+    <button class="btn-back" id="cart-back" aria-label="Voltar">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M10 7H2M5 3L1 7l4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="cart-title-wrap">
+      <div class="cart-heading">Sacola</div>
+      <div class="cart-sub" id="cart-sub-label">Kit personalizado</div>
+    </div>
+    <div class="cart-badge" id="cart-badge">3</div>
+  </div>
+  <div class="cart-scroll" id="cart-items">
+    <!-- rendered by JS -->
+  </div>
+  <div class="cart-summary" id="cart-summary">
+    <!-- rendered by JS -->
+  </div>
+  <div class="cart-bot">
+    <button class="btn-solid" id="btn-checkout">
+      Finalizar pedido
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 5 — CONFIRMAÇÃO
+══════════════════════════════════════════════ -->
+<div id="s-confirm" class="screen hidden-down">
+  <div class="confirm-seal">
+    <span class="confirm-seal-icon">✦</span>
+  </div>
+  <p class="confirm-kicker">Pedido recebido</p>
+  <h2 class="confirm-h2">Seu protocolo<br><em>está a caminho.</em></h2>
+  <p class="confirm-p">Nossa equipe entrará em contato para confirmar a entrega. Atendimento concierge, no seu tempo.</p>
+  <div class="confirm-card" id="confirm-card">
+    <!-- rendered by JS -->
+  </div>
+  <div class="confirm-btn-wrap">
+    <button class="btn-outline" id="btn-restart" style="max-width:260px;margin:0 auto;display:block">Novo diagnóstico</button>
+  </div>
+</div>
+
+</div><!-- /#app -->
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════ */
+const QUESTIONS = [
+  {
+    id: 'demand',
+    step: '01',
+    text: 'Qual é sua principal demanda capilar?',
+    hint: 'Selecione a que melhor representa seu momento.',
+    opts: [
+      { icon: '💧', label: 'Queda de cabelo',           val: 'queda'      },
+      { icon: '🌿', label: 'Ressecamento e frizz',       val: 'hidra'      },
+      { icon: '✦',  label: 'Pós-transplante capilar',    val: 'transplante'},
+      { icon: '⚡', label: 'Couro cabeludo sensível',    val: 'couro'      },
+      { icon: '◎',  label: 'Manutenção preventiva',      val: 'manut'      },
+    ]
+  },
+  {
+    id: 'fase',
+    step: '02',
+    text: 'Em que fase do tratamento você está?',
+    hint: 'Isso calibra a intensidade do protocolo.',
+    opts: [
+      { icon: '○',  label: 'Nunca me tratei — estou começando',  val: 'inicio' },
+      { icon: '◐',  label: 'Primeiros 90 dias de tratamento',    val: '90d'    },
+      { icon: '◕',  label: '3 a 12 meses em protocolo ativo',   val: '12m'    },
+      { icon: '●',  label: 'Mais de 1 ano — busco manutenção',  val: 'exp'    },
+    ]
+  },
+  {
+    id: 'intensidade',
+    step: '03',
+    text: 'Como avalia a intensidade do problema?',
+    hint: 'Seja objetivo — isso define o mix de ativos.',
+    opts: [
+      { icon: '▪',     label: 'Leve — percebo, mas é discreto',        val: 'leve'     },
+      { icon: '▪▪',   label: 'Moderado — visível no dia a dia',        val: 'moderado' },
+      { icon: '▪▪▪', label: 'Intenso — preciso agir com urgência',    val: 'intenso'  },
+    ]
+  },
+  {
+    id: 'rotina',
+    step: '04',
+    text: 'Qual é sua rotina atual de cuidados?',
+    hint: 'Ajuda a calibrar a complexidade do protocolo.',
+    opts: [
+      { icon: '—', label: 'Só shampoo convencional',             val: 'zero'     },
+      { icon: '—', label: 'Shampoo + condicionador',             val: 'basico'   },
+      { icon: '—', label: 'Já uso algum produto específico',     val: 'medio'    },
+      { icon: '—', label: 'Tenho uma rotina estabelecida',       val: 'avancado' },
+    ]
+  },
+  {
+    id: 'objetivo',
+    step: '05',
+    text: 'Qual resultado você busca em 90 dias?',
+    hint: 'Define o objetivo central do protocolo.',
+    opts: [
+      { icon: '↓', label: 'Reduzir a queda visivelmente',       val: 'reduzir'  },
+      { icon: '↑', label: 'Recuperar volume e densidade',       val: 'volume'   },
+      { icon: '~', label: 'Hidratar e controlar o frizz',       val: 'hidra'    },
+      { icon: '◎', label: 'Manter o resultado conquistado',     val: 'manter'   },
+    ]
+  }
+];
+
+const PROTOCOLS = {
+  queda: {
+    badge: 'Protocolo de Densidade',
+    name: '<em>Reequilíbrio</em><br>Capilar',
+    desc: 'Combina ativos de alta performance para fortalecer o bulbo capilar, reduzir a queda e estimular o crescimento de novos fios em 60 a 90 dias.',
+    phases: [
+      { num:'I',   title:'Limpeza e estímulo',    desc:'Shampoo com cafeína e zinco, três vezes por semana.' },
+      { num:'II',  title:'Tratamento intensivo',  desc:'Sérum antiqueda aplicado diretamente no couro cabeludo.' },
+      { num:'III', title:'Selagem e proteção',    desc:'Condicionador fortalecedor que sela e nutre os fios existentes.' },
+    ],
+    products: [
+      { icon:'◈', name:'Shampoo Densificante',       role:'Cafeína + Zinco · 250ml',  price:260 },
+      { icon:'◉', name:'Sérum Antiqueda',             role:'Minoxidil-free · 50ml',    price:520 },
+      { icon:'◇', name:'Condicionador Fortalecedor', role:'Uso semanal · 200ml',       price:220 },
+    ]
+  },
+  hidra: {
+    badge: 'Protocolo de Hidratação',
+    name: '<em>Barreira</em><br>&amp; Brilho',
+    desc: 'Protocolo de hidratação profunda e selagem de cutícula para fios secos, com controle de frizz e brilho de longa duração sem resíduo.',
+    phases: [
+      { num:'I',   title:'Limpeza hidratante',    desc:'Shampoo de baixo detergente com óleos vegetais prensados a frio.' },
+      { num:'II',  title:'Hidratação profunda',   desc:'Máscara de ceramidas vegetais, uma vez por semana.' },
+      { num:'III', title:'Selagem da cutícula',   desc:'Óleo finalizador aplicado nos fios ainda úmidos.' },
+    ],
+    products: [
+      { icon:'◈', name:'Shampoo Nutritivo',    role:'Óleos frios · 250ml',      price:240 },
+      { icon:'◉', name:'Máscara de Ceramidas', role:'Uso semanal · 200g',       price:350 },
+      { icon:'◇', name:'Óleo Selante',         role:'Camélia + Argan · 50ml',  price:310 },
+    ]
+  },
+  transplante: {
+    badge: 'Protocolo Clínico',
+    name: '<em>Ancoragem</em><br>Folicular',
+    desc: 'Formulado para o período crítico pós-transplante. Atua na estabilização dos folículos recém-implantados, controle da inflamação e aceleração da fase de ancoragem.',
+    phases: [
+      { num:'I',   title:'Limpeza sem agressão', desc:'Shampoo enzimático suave nos primeiros 30 dias.' },
+      { num:'II',  title:'Ancoragem noturna',    desc:'Sérum de fixação folicular aplicado à noite.' },
+      { num:'III', title:'Manutenção ativa',     desc:'Rotina consolidada a partir do 90º dia.' },
+    ],
+    products: [
+      { icon:'◈', name:'Shampoo Enzimático',  role:'Limpeza folicular · 250ml',     price:290 },
+      { icon:'◉', name:'Sérum de Ancoragem',  role:'Uso noturno · 30ml',            price:490 },
+      { icon:'◇', name:'Tônico Pós-Implante', role:'Suporte pós-cirúrgico · 100ml', price:380 },
+    ]
+  },
+  couro: {
+    badge: 'Protocolo de Equilíbrio',
+    name: '<em>Conforto</em><br>Dérmico',
+    desc: 'Formulado para couro cabeludo sensível, oleoso ou com caspa. Reequilibra a microbiota local e reduz a inflamação sem agressão ao fio.',
+    phases: [
+      { num:'I',   title:'Higienização técnica', desc:'Shampoo antisséptico de baixa agressão.' },
+      { num:'II',  title:'Equilíbrio sebáceo',   desc:'Tônico regulador aplicado em dias alternados.' },
+      { num:'III', title:'Proteção contínua',    desc:'Sérum de microbiota como pré-lavagem semanal.' },
+    ],
+    products: [
+      { icon:'◈', name:'Shampoo Dermoativo',    role:'Antisséptico suave · 250ml', price:270 },
+      { icon:'◉', name:'Tônico Regulador',      role:'Sebum control · 100ml',     price:340 },
+      { icon:'◇', name:'Sérum de Microbiota',   role:'Pré-lavagem · 80ml',        price:390 },
+    ]
+  },
+  manut: {
+    badge: 'Protocolo Preventivo',
+    name: '<em>Manutenção</em><br>de Elite',
+    desc: 'Para quem já atingiu o resultado desejado e quer mantê-lo. Rotina simplificada em dois passos, três vezes por semana, sem comprometer a agenda.',
+    phases: [
+      { num:'I',   title:'Rotina de limpeza',   desc:'Shampoo de manutenção, uso diário de baixo detergente.' },
+      { num:'II',  title:'Suporte contínuo',    desc:'Ampola semanal de manutenção folicular.' },
+      { num:'III', title:'Proteção térmica',    desc:'Protetor para secador e modelagem diária.' },
+    ],
+    products: [
+      { icon:'◈', name:'Shampoo de Manutenção', role:'Uso diário · 250ml',         price:230 },
+      { icon:'◉', name:'Ampola Semanal',         role:'Suporte folicular · 8×10ml', price:420 },
+      { icon:'◇', name:'Protetor Térmico',       role:'Uso diário · 150ml',         price:280 },
+    ]
+  }
+};
+
+/* ══════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════ */
+const state = {
+  currentScreen: 's-home',
+  history: [],
+  qIndex: 0,
+  answers: {},
+  selectedVal: null,
+  protocol: null,
+};
+
+/* ══════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════ */
+function navigate(toId, direction) {
+  const fromEl = document.getElementById(state.currentScreen);
+  const toEl   = document.getElementById(toId);
+  if (!fromEl || !toEl) return;
+
+  // direction: 'forward' | 'back' | 'up'
+  const exitClass  = direction === 'back' ? 'hidden-right' : (direction === 'up' ? 'hidden-down' : 'hidden-left');
+  const enterClass = direction === 'back' ? 'hidden-left'  : (direction === 'up' ? 'hidden-down' : 'hidden-right');
+
+  // Prepare destination
+  toEl.classList.remove('hidden-right', 'hidden-left', 'hidden-down');
+  toEl.classList.add(enterClass);
+
+  // Force reflow so the starting position is painted
+  toEl.offsetHeight; // eslint-disable-line
+
+  // Start transition
+  fromEl.classList.remove('visible');
+  fromEl.classList.add(exitClass);
+
+  toEl.classList.remove(enterClass);
+  toEl.classList.add('visible');
+
+  // After transition ends, clean up
+  setTimeout(() => {
+    fromEl.classList.remove('visible');
+    // leave exitClass so it's off-screen
+  }, 580);
+
+  state.history.push({ id: state.currentScreen, exitClass });
+  state.currentScreen = toId;
+}
+
+function goBack() {
+  if (!state.history.length) return;
+  const prev = state.history.pop();
+  const fromEl = document.getElementById(state.currentScreen);
+  const toEl   = document.getElementById(prev.id);
+  if (!fromEl || !toEl) return;
+
+  // fromEl exits to the right
+  fromEl.classList.remove('visible');
+  fromEl.classList.add('hidden-right');
+
+  // toEl comes back from its exit position
+  toEl.classList.remove(prev.exitClass, 'hidden-right', 'hidden-left', 'hidden-down');
+  toEl.classList.add('visible');
+
+  state.currentScreen = prev.id;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DIAGNÓSTICO
+══════════════════════════════════════════════════════════ */
+function renderQuestion(animate) {
+  const q   = QUESTIONS[state.qIndex];
+  const pct = ((state.qIndex + 1) / QUESTIONS.length) * 100;
+
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent =
+    (state.qIndex + 1) + ' de ' + QUESTIONS.length;
+
+  const sel = state.answers[q.id] || null;
+  state.selectedVal = sel;
+
+  const html = `
+    <div class="q-step ${animate ? 'q-slide-enter' : ''}">Pergunta ${q.step}</div>
+    <div class="q-text ${animate ? 'q-slide-enter' : ''}" style="${animate ? 'animation-delay:.05s' : ''}">${q.text}</div>
+    <div class="q-hint ${animate ? 'q-slide-enter' : ''}" style="${animate ? 'animation-delay:.1s' : ''}">${q.hint}</div>
+    <div class="q-options ${animate ? 'q-slide-enter' : ''}" style="${animate ? 'animation-delay:.12s' : ''}">
+      ${q.opts.map((o, i) => `
+        <div class="q-opt${sel === o.val ? ' sel' : ''}" data-val="${o.val}" data-idx="${i}">
+          <span class="opt-icon">${o.icon}</span>
+          <span class="opt-label">${o.label}</span>
+          <span class="opt-radio"></span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  const content = document.getElementById('diag-content');
+  content.innerHTML = html;
+
+  // Bind option clicks
+  content.querySelectorAll('.q-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      content.querySelectorAll('.q-opt').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+      state.selectedVal = el.dataset.val;
+      document.getElementById('btn-next').disabled = false;
+    });
+  });
+
+  // Update next button state
+  document.getElementById('btn-next').disabled = !sel;
+}
+
+function advanceQuestion() {
+  const q = QUESTIONS[state.qIndex];
+  state.answers[q.id] = state.selectedVal;
+
+  if (state.qIndex < QUESTIONS.length - 1) {
+    state.qIndex++;
+    state.selectedVal = state.answers[QUESTIONS[state.qIndex].id] || null;
+    renderQuestion(true);
+  } else {
+    // Determine protocol from demand answer
+    const demand = state.answers.demand || 'queda';
+    state.protocol = PROTOCOLS[demand] || PROTOCOLS.queda;
+    renderProtocol();
+    navigate('s-protocol', 'forward');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROTOCOLO
+══════════════════════════════════════════════════════════ */
+function renderProtocol() {
+  const p = state.protocol;
+  const inner = document.getElementById('proto-inner');
+  inner.innerHTML = `
+    <div class="proto-tag">
+      <span class="proto-tag-dot"></span>
+      ${p.badge}
+    </div>
+    <div class="proto-name">${p.name}</div>
+    <div class="proto-desc">${p.desc}</div>
+
+    <div class="phases-label">Fases do protocolo</div>
+    <div class="phases">
+      ${p.phases.map(ph => `
+        <div class="phase">
+          <div class="phase-num">${ph.num}</div>
+          <div class="phase-txt">
+            <div class="phase-ttl">${ph.title}</div>
+            <div class="phase-dsc">${ph.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="products-label">Kit curado para você</div>
+    ${p.products.map(pr => `
+      <div class="product-row">
+        <div class="prod-icon">${pr.icon}</div>
+        <div class="prod-info">
+          <div class="prod-name">${pr.name}</div>
+          <div class="prod-role">${pr.role}</div>
+        </div>
+        <div class="prod-price">R$&nbsp;${pr.price}</div>
+      </div>
+    `).join('')}
+    <div style="height:8px"></div>
+  `;
+  // Scroll to top
+  document.querySelector('.proto-scroll').scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARRINHO
+══════════════════════════════════════════════════════════ */
+function renderCart() {
+  const p = state.protocol;
+  const items = p.products;
+  const total = items.reduce((a, i) => a + i.price, 0);
+
+  document.getElementById('cart-badge').textContent = items.length;
+  document.getElementById('cart-sub-label').textContent = p.badge;
+
+  document.getElementById('cart-items').innerHTML =
+    items.map(item => `
+      <div class="cart-item">
+        <div class="ci-icon">${item.icon}</div>
+        <div class="ci-info">
+          <div class="ci-name">${item.name}</div>
+          <div class="ci-detail">${item.role}</div>
+        </div>
+        <div class="ci-price">R$&nbsp;${item.price}</div>
+      </div>
+    `).join('');
+
+  document.getElementById('cart-summary').innerHTML = `
+    <div class="cs-row">
+      <span class="cs-label">Subtotal</span>
+      <span class="cs-val">R$&nbsp;${total.toLocaleString('pt-BR')}</span>
+    </div>
+    <div class="cs-row">
+      <span class="cs-label">Entrega concierge SP</span>
+      <span class="cs-val">Grátis</span>
+    </div>
+    <div class="cs-total-row">
+      <span class="cs-total-label">Total</span>
+      <span class="cs-total-val">R$&nbsp;${total.toLocaleString('pt-BR')}</span>
+    </div>
+  `;
+
+  document.querySelector('.cart-scroll').scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CONFIRMAÇÃO
+══════════════════════════════════════════════════════════ */
+function renderConfirm() {
+  const p = state.protocol;
+  const orderId = 'RIT-' + (1000 + Math.floor(Math.random() * 9000));
+  const now = new Date();
+  const delivery = new Date(now.getTime() + 2 * 864e5);
+  const fmt = { day: '2-digit', month: '2-digit' };
+
+  document.getElementById('confirm-card').innerHTML = `
+    <div class="cc-row"><span class="cc-lbl">Pedido</span><span class="cc-val">${orderId}</span></div>
+    <div class="cc-row"><span class="cc-lbl">Protocolo</span><span class="cc-val">${p.badge}</span></div>
+    <div class="cc-row"><span class="cc-lbl">Entrega estimada</span><span class="cc-val">${delivery.toLocaleDateString('pt-BR', fmt)} · Concierge</span></div>
+    <div class="cc-row"><span class="cc-lbl">Contato</span><span class="cc-val">WhatsApp em breve</span></div>
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESET
+══════════════════════════════════════════════════════════ */
+function resetApp() {
+  state.qIndex      = 0;
+  state.answers     = {};
+  state.selectedVal = null;
+  state.protocol    = null;
+  state.history     = [];
+
+  // Move all screens to hidden-right except home
+  ['s-diag','s-protocol','s-cart','s-confirm'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('visible','hidden-left','hidden-down');
+    el.classList.add('hidden-right');
+  });
+
+  const home = document.getElementById('s-home');
+  home.classList.remove('hidden-right','hidden-left','hidden-down');
+  home.classList.add('visible');
+  state.currentScreen = 's-home';
+}
+
+/* ══════════════════════════════════════════════════════════
+   EVENT BINDINGS
+══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Home → Diag
+  document.getElementById('btn-start').addEventListener('click', () => {
+    state.qIndex = 0;
+    state.selectedVal = state.answers[QUESTIONS[0].id] || null;
+    renderQuestion(false);
+    navigate('s-diag', 'forward');
+  });
+
+  // Diag back
+  document.getElementById('diag-back').addEventListener('click', () => {
+    if (state.qIndex > 0) {
+      state.qIndex--;
+      state.selectedVal = state.answers[QUESTIONS[state.qIndex].id] || null;
+      renderQuestion(false);
+    } else {
+      goBack();
+    }
+  });
+
+  // Diag next
+  document.getElementById('btn-next').addEventListener('click', () => {
+    if (!document.getElementById('btn-next').disabled) {
+      advanceQuestion();
+    }
+  });
+
+  // Protocol back
+  document.getElementById('proto-back').addEventListener('click', () => {
+    // Go back to last question
+    state.qIndex = QUESTIONS.length - 1;
+    state.selectedVal = state.answers[QUESTIONS[state.qIndex].id] || null;
+    renderQuestion(false);
+    goBack();
+  });
+
+  // Protocol → Cart
+  document.getElementById('btn-add-cart').addEventListener('click', () => {
+    renderCart();
+    navigate('s-cart', 'forward');
+  });
+
+  // Protocol → redo diag
+  document.getElementById('btn-redo-diag').addEventListener('click', () => {
+    state.qIndex = 0;
+    state.answers = {};
+    state.selectedVal = null;
+    // Clear history to go back correctly
+    state.history = [{ id: 's-home', exitClass: 'hidden-left' }];
+    renderQuestion(false);
+    navigate('s-diag', 'forward');
+  });
+
+  // Cart back
+  document.getElementById('cart-back').addEventListener('click', () => {
+    goBack();
+  });
+
+  // Cart → Confirm
+  document.getElementById('btn-checkout').addEventListener('click', () => {
+    renderConfirm();
+    navigate('s-confirm', 'up');
+  });
+
+  // Confirm → Restart
+  document.getElementById('btn-restart').addEventListener('click', () => {
+    resetApp();
+  });
+});
+
+/* ══════════════════════════════════════════════════════════
+   SERVICE WORKER
+══════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
